@@ -7,7 +7,7 @@ import pathlib
 import calibrate
 import warnings
 
-LOGFILE_PATH = "cyberzoo_tests_the_second/config_c"
+LOGFILE_PATH = "cyberzoo_tests_the_second/config_a"
 LOGFILES_ROOT = "input"
 SAVE_FOR_PUBLICATION = False
 
@@ -23,6 +23,7 @@ j, _, __, I_dev, x_dev = calibrate.calibrateFlywheel(
                             filter_cutoff=LP_CUTOFF,
                             )
 
+eigval_errs = []
 for (dirpath, dirnames, filenames) in os.walk(os.path.join(LOGFILES_ROOT, LOGFILE_PATH)):
     for f in filenames:
         if ".py" in f:
@@ -83,7 +84,8 @@ for (dirpath, dirnames, filenames) in os.walk(os.path.join(LOGFILES_ROOT, LOGFIL
         print(I_test)
         print(I_obj)
 
-        computeError(I_obj, groundtruth.trueInertia)
+        eigval_error, psi = computeError(I_obj, groundtruth.trueInertia)
+        eigval_errs.append(eigval_error)
         print(groundtruth.trueInertia)
         
         del groundtruth
@@ -132,3 +134,8 @@ for (dirpath, dirnames, filenames) in os.walk(os.path.join(LOGFILES_ROOT, LOGFIL
                 cid = fig.canvas.mpl_connect('resize_event', on_resize)
                 #plt.show()
     break
+
+print()
+eigval_errs = np.asarray(eigval_errs)
+print(f"mean eigval error: {100*eigval_errs.mean()}%")
+print(f"max eigval error: {100*eigval_errs.max()}%")
